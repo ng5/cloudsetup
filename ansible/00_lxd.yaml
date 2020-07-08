@@ -1,0 +1,43 @@
+---
+- name: Install SSH
+  hosts: "{{ variable_host }}"
+  become: true
+  become_user: root
+  become_method: sudo
+  tasks:
+    - lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: "^%sudo"
+        line: "%sudo ALL=(ALL) NOPASSWD: ALL"
+
+    - user: name={{remote_user}} groups=sudo append=yes state=present createhome=yes shell=/bin/bash
+
+    - name: Set up authorized keys for the deployer user
+      authorized_key: user={{remote_user}} key="{{item}}"
+      with_file:
+        - /home/rohitv/.ssh/authorized_keys
+
+    - name: Create file
+      command: touch /home/{{remote_user}}/.hushlogin
+      args:
+        creates: /home/{{remote_user}}/.hushlogin
+
+    - name: Update
+      apt:
+        upgrade: full
+
+    - name: Install necessary packages
+      apt:
+        name:
+          - gpg
+          - ssh
+          - ufw
+        update_cache: yes
+        state: latest
+
+    - name: Start ssh
+      systemd:
+        state: restarted
+        name: ssh
+        enabled: true

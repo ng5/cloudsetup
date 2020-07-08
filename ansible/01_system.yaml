@@ -1,0 +1,90 @@
+---
+- name: Standard
+  hosts: "{{ variable_host }}"
+  become: true
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: London timezone
+      timezone:
+        name: Europe/London
+
+    - name: Disallow password authentication
+      lineinfile: dest=/etc/ssh/sshd_config
+        regexp="^PasswordAuthentication"
+        line="PasswordAuthentication no"
+        state=present
+
+    - name: Disallow root SSH access
+      lineinfile: dest=/etc/ssh/sshd_config
+        regexp="^PermitRootLogin"
+        line="PermitRootLogin no"
+        state=present
+
+    - name: Restart SSH
+      systemd:
+        state: restarted
+        name: sshd
+
+    - name: sysctl
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - ufw:
+        state: enabled
+        policy: allow
+
+    - ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+
+    - ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: full
+
+    - name: Add mongodb key
+      apt_key:
+        url: https://www.mongodb.org/static/pgp/server-4.2.asc
+        id: 4B7C549A058F8B6B
+        state: present
+
+    - name: Add mongo sources list
+      lineinfile: dest=/etc/apt/sources.list.d/mongodb.list
+        line="deb https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse"
+        state=present
+        create=yes
+
+    - name: Install packages
+      apt:
+        name:
+          - haproxy
+          - iftop
+          - mlocate
+          - traceroute
+          - tree
+          - wget
+          - certbot
+          - mongodb-org
+        update_cache: yes
+        state: latest
+
+    - name: Start mongodb
+      systemd:
+        state: restarted
+        name: mongod
+        enabled: true

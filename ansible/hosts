@@ -1,0 +1,19 @@
+[all:vars]
+ansible_connection=ssh
+remote_user = build
+
+[hz_automated:vars]
+ansible_user = build
+
+[hz_automated]
+a.b.c.d
+
+[lxd:vars]
+ansible_connection=lxd
+remote_user = build
+
+[lxd]
+lxd1
+lxd2
+lxd3
+lxd4

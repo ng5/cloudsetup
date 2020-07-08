@@ -1,0 +1,32 @@
+---
+- name: Utility softwares
+  hosts: "{{ variable_host }}"
+  become: true
+  become_user: root
+  become_method: sudo
+
+  roles:
+    - role: gantsign.oh-my-zsh
+      users:
+        - username: "{{ remote_user }}"
+          oh_my_zsh:
+            theme: robbyrussell
+            plugins:
+              - git
+              - docker
+
+  tasks:
+    - name: Wireshark group
+      group:
+        name: wireshark
+        state: present
+    - name: Add user
+      user:
+        name: "{{ remote_user }}"
+        groups: wireshark
+        append: yes
+
+    - name: remove previous .zshrc.* files
+      shell: |
+        rm -rf /root/.zshrc.*
+        rm -rf /home/{{ remote_user }}/.zshrc.*

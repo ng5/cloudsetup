@@ -1,7 +1,5 @@
 # Cloud server provisioning and hardening 
 
-####  IMPORTANT: Target development and deployment server is <span style="color:maroon"> Ubuntu 20.04 x86_64 </span>. Scripts will not work on any other environment.
-
 ### <span style="color:maroon">Pre-requisites</span>
 1. You have Linux/Macbook desktop/server for development environment.
 2. You have installed ansible and terraform.
